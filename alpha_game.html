@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fitness Survivor (Island Loop Alpha)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --ink:#102016;
+      --card:rgba(255,255,255,0.92);
+      --shadow: 0 12px 32px rgba(0,0,0,0.22);
+
+      --uiTop:#143b2c;
+      --uiBottom:#0b251c;
+
+      --sky1:#bfefff;
+      --sky2:#4ec1e3;
+
+      --sea1:#1bd2ff;
+      --sea2:#0a62ff;
+
+      --sand1:#ffe3a6;
+      --sand2:#f2b15a;
+
+      --jungle1:#35e08a;
+      --jungle2:#167a45;
+
+      --trackStroke: rgba(35, 86, 58, 0.65);
+      --tileA:#fff8ea;
+      --tileB:#f2ead9;
+      --rope:#d8b479;
+
+      --accent:#ffcc33;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:16px;
+      font-family:"Nunito", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(67,255,150,0.10), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(0,180,255,0.10), transparent 60%),
+        radial-gradient(900px 500px at 50% 90%, rgba(255,220,0,0.08), transparent 60%),
+        linear-gradient(180deg, var(--uiTop), var(--uiBottom));
+      min-height:100vh;
+    }
+
+    h1{
+      margin:0 0 6px 0;
+      font-family:"Luckiest Guy","Nunito",system-ui,sans-serif;
+      letter-spacing: 1px;
+      font-size: 40px;
+      color:#f5ffe9;
+      text-shadow: 0 3px 0 rgba(0,0,0,0.35);
+    }
+    .sub{ margin:0 0 14px 0; color: rgba(245,255,233,0.85); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:12px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid rgba(0,0,0,0.10);
+      border-radius:16px;
+      padding:12px;
+      box-shadow: var(--shadow);
+    }
+    .big{ font-size:18px; font-weight:900; }
+    .muted{ color: rgba(0,0,0,0.60); }
+    .small{ font-size:12px; }
+
+    button{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,0.18);
+      background:#fff;
+      cursor:pointer;
+      font-weight:900;
+    }
+    button:disabled{ opacity:.5; cursor:not-allowed; }
+    input, select{
+      padding:8px;
+      border-radius:10px;
+      border:1px solid rgba(0,0,0,0.22);
+      width:100%;
+      background:#fff;
+      font-weight:800;
+    }
+
+    .boardFrame{
+      border-radius:18px;
+      padding:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.10));
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,0.12);
+    }
+    .boardSvg{
+      width:100%;
+      max-width: 1040px;
+      height:auto;
+      display:block;
+      border-radius: 16px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.25);
+      overflow:hidden;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .bottomRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:12px;
+      margin-top:12px;
+    }
+    @media (max-width: 980px){
+      .bottomRow{ grid-template-columns: 1fr; }
+    }
+
+    .log{
+      white-space:pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size:12px;
+      max-height: 220px;
+      overflow:auto;
+      background: rgba(0,0,0,0.03);
+      border-radius: 12px;
+      padding:10px;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .handRow{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .chip{
+      border:1px solid rgba(0,0,0,0.18);
+      border-radius:999px;
+      padding:8px 10px;
+      background:#fff;
+      cursor:pointer;
+      font-weight:900;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      user-select:none;
+    }
+    .chip.selected{
+      outline: 3px solid rgba(0,120,255,0.35);
+      border-color: rgba(0,120,255,0.45);
+    }
+    .chip small{ font-weight:800; color: rgba(0,0,0,0.62); }
+
+    .diceBox{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+    .die{
+      width:56px; height:56px;
+      border-radius:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(240,240,240,0.95));
+      border: 1px solid rgba(0,0,0,0.14);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+      font-weight:900;
+      position:relative;
+      transform-origin: 50% 50%;
+    }
+    .die.rolling{
+      animation: dieRoll 0.16s linear infinite;
+    }
+    @keyframes dieRoll{
+      0%{ transform: rotate(0deg) translateY(0px); }
+      50%{ transform: rotate(9deg) translateY(-2px); }
+      100%{ transform: rotate(0deg) translateY(0px); }
+    }
+
+    .soundToggle{
+      display:flex; align-items:center; gap:8px; margin-top:10px;
+      user-select:none;
+      font-weight:900;
+    }
+
+    .pulse{ animation:pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.18);} }
+
+    .hidden{ display:none !important; }
+  </style>
+</head>
+
+<body>
+  <h1>Fitness Survivor</h1>
+  <div class="sub">
+    Roll 2d6 to move. The <b>square number</b> determines the reps/seconds. Pass GO → draw a sabotage card. Fail = OUT. Last standing wins.
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: Setup + Turn -->
+    <div class="card">
+      <div class="big">Setup</div>
+      <label class="muted">Players (2–4)</label>
+      <select id="playerCount">
+        <option>2</option><option>3</option><option selected>4</option>
+      </select>
+
+      <div style="height:8px"></div>
+      <label class="muted">Names (comma-separated)</label>
+      <input id="names" placeholder="Richard, Player2, Player3, Player4" />
+
+      <div style="height:10px"></div>
+      <button id="btnStart">Start Game</button>
+
+      <div class="soundToggle">
+        <input type="checkbox" id="soundOn" checked />
+        <label for="soundOn">Sound</label>
+      </div>
+
+      <div style="height:10px"></div>
+      <div class="muted small">Safety: warm up, stop if pain/dizziness. Alpha is self-policed.</div>
+
+      <hr style="margin:12px 0; border:none; border-top:1px solid rgba(0,0,0,0.10)">
+
+      <div class="big">Turn</div>
+      <div id="status" class="muted">Press Start Game.</div>
+
+      <div class="diceBox">
+        <div class="die" id="die1">-</div>
+        <div class="die" id="die2">-</div>
+        <div style="min-width:120px">
+          <div class="muted small">Move roll</div>
+          <div class="big" id="rollTotal">—</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button id="btnRoll" disabled>Roll 2d6</button>
+        <button id="btnDone" disabled>I did it ✅</button>
+        <button id="btnFail" disabled>I failed ❌</button>
+      </div>
+
+      <div style="height:10px"></div>
+      <div id="challenge" class="big"></div>
+      <div id="timer" class="muted"></div>
+
+      <div style="height:10px"></div>
+      <div class="muted small">
+        Sabotage cards can be played <b>before</b> you roll.
+      </div>
+
+      <div id="handArea">
+        <div class="muted" style="margin-top:10px;font-weight:900;">Your cards</div>
+        <div id="hand" class="handRow"></div>
+
+        <div id="targetArea" class="hidden">
+          <div style="height:8px"></div>
+          <label class="muted">Target</label>
+          <select id="targetSelect"></select>
+        </div>
+
+        <div style="height:8px"></div>
+        <button id="btnPlayCard" disabled>Play selected card</button>
+        <div id="cardHint" class="muted small" style="margin-top:6px;"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Board -->
+    <div class="card">
+      <div class="big">Board</div>
+      <div class="boardFrame">
+        <svg id="boardSvg" class="boardSvg" viewBox="0 0 1100 650" role="img" aria-label="Fitness Survivor board">
+          <defs>
+            <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="var(--sky1)" stop-opacity="0.95"></stop>
+              <stop offset="1" stop-color="var(--sky2)" stop-opacity="0.35"></stop>
+            </linearGradient>
+            <linearGradient id="sand" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="var(--sand1)" stop-opacity="0.96"></stop>
+              <stop offset="1" stop-color="var(--sand2)" stop-opacity="0.96"></stop>
+            </linearGradient>
+            <linearGradient id="water" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stop-color="var(--sea1)" stop-opacity="0.85"></stop>
+              <stop offset="1" stop-color="var(--sea2)" stop-opacity="0.85"></stop>
+            </linearGradient>
+            <linearGradient id="jungle" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="var(--jungle1)" stop-opacity="0.95"></stop>
+              <stop offset="1" stop-color="var(--jungle2)" stop-opacity="0.95"></stop>
+            </linearGradient>
+            <filter id="drop" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="6" stdDeviation="6" flood-opacity="0.25"/>
+            </filter>
+          </defs>
+
+          <!-- Background -->
+          <rect x="0" y="0" width="1100" height="650" fill="url(#sky)"/>
+          <g opacity="0.22">
+            <path d="M100 95c22-26 70-26 88 0c22-12 54 0 56 24c2 22-20 32-42 32H80c-30 0-46-14-42-32c4-18 26-24 62-24z" fill="white"/>
+            <path d="M820 85c22-28 70-26 88 2c22-12 54 0 56 24c2 22-20 32-42 32H800c-30 0-46-14-42-32c4-18 26-26 62-26z" fill="white"/>
+          </g>
+
+          <!-- Island -->
+          <path d="M 0 390
+                   C 160 305 300 330 420 360
+                   C 560 398 690 355 830 338
+                   C 980 320 1030 350 1100 335
+                   L 1100 650 L 0 650 Z"
+                fill="url(#sand)" opacity="0.98"/>
+
+          <!-- Jungle patch -->
+          <path d="M120 458c130-96 290-80 380-20c90 60 160 40 255-8c150-70 270-20 340 60c-65 88-180 132-340 148c-300 28-520-24-635-180z"
+                fill="url(#jungle)" opacity="0.92" filter="url(#drop)"/>
+
+          <!-- Shallow water -->
+          <path d="M 0 488 C 240 440 360 472 470 515 C 610 575 810 545 960 495 C 1040 468 1070 462 1100 474 L 1100 650 L 0 650 Z"
+                fill="url(#water)" opacity="0.35"/>
+
+          <!-- Water corner -->
+          <path d="M 780 650 C 860 575 960 535 1100 525 L 1100 650 Z" fill="url(#water)" opacity="0.92"/>
+          <path d="M 810 650 C 900 590 1010 555 1100 545" stroke="rgba(255,255,255,0.55)" stroke-width="6" fill="none" opacity="0.6"/>
+
+          <!-- More twisty track -->
+          <path id="trackBase"
+                d="M 190 320
+                   C 130 120 360 55 520 150
+                   C 600 195 610 90 705 95
+                   C 830 105 1010 190 960 320
+                   C 920 420 1045 505 905 560
+                   C 780 610 700 520 640 575
+                   C 580 635 400 625 365 535
+                   C 335 460 245 420 195 485
+                   C 120 585 55 420 190 320 Z"
+                fill="none"
+                stroke="var(--trackStroke)"
+                stroke-width="152"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                filter="url(#drop)"/>
+
+          <path id="trackPath"
+                d="M 190 320
+                   C 130 120 360 55 520 150
+                   C 600 195 610 90 705 95
+                   C 830 105 1010 190 960 320
+                   C 920 420 1045 505 905 560
+                   C 780 610 700 520 640 575
+                   C 580 635 400 625 365 535
+                   C 335 460 245 420 195 485
+                   C 120 585 55 420 190 320 Z"
+                fill="none"
+                stroke="transparent"
+                stroke-width="2"/>
+
+          <path
+                d="M 190 320
+                   C 130 120 360 55 520 150
+                   C 600 195 610 90 705 95
+                   C 830 105 1010 190 960 320
+                   C 920 420 1045 505 905 560
+                   C 780 610 700 520 640 575
+                   C 580 635 400 625 365 535
+                   C 335 460 245 420 195 485
+                   C 120 585 55 420 190 320 Z"
+                fill="none"
+                stroke="var(--rope)"
+                stroke-width="10"
+                stroke-dasharray="10 10"
+                stroke-linecap="round"
+                opacity="0.55"/>
+
+          <!-- Props (placeholder emoji for now) -->
+          <g opacity="0.95">
+            <text x="120" y="380" font-size="44">🌴</text>
+            <text x="965" y="390" font-size="44">🌴</text>
+            <text x="870" y="255" font-size="34">🏴‍☠️</text>
+            <text x="685" y="345" font-size="34">🧰</text>
+            <text x="560" y="590" font-size="34">🧭</text>
+            <text x="460" y="470" font-size="34">❌</text>
+          </g>
+
+          <!-- Tiles and Tokens are separate layers -->
+          <g id="tiles"></g>
+          <g id="tokens"></g>
+
+          <!-- GO label -->
+          <text x="108" y="260" font-size="46" font-family="Luckiest Guy, Nunito, sans-serif"
+                fill="rgba(255,255,255,0.92)" stroke="rgba(0,0,0,0.22)" stroke-width="5">GO!</text>
+          <text x="106" y="302" font-size="18" font-weight="900" fill="rgba(255,255,255,0.90)">Pass GO = draw a card</text>
+        </svg>
+      </div>
+
+      <div class="muted small" style="margin-top:8px;">
+        Squares are numbered <b>1–40</b>. The square number sets reps/seconds.
+      </div>
+    </div>
+  </div>
+
+  <div class="bottomRow">
+    <div class="card">
+      <div class="big">Players</div>
+      <div id="players"></div>
+    </div>
+
+    <div class="card">
+      <div class="big">Rules quick-ref</div>
+      <div class="muted">
+        <ul style="margin:8px 0 0 18px;">
+          <li><b>Roll</b> to move only.</li>
+          <li><b>Square #</b> = reps (or seconds for Plank).</li>
+          <li><b>Pass GO</b> → draw a sabotage card.</li>
+          <li>Play <b>one</b> card before your roll.</li>
+          <li>Fail your exercise → <b>OUT</b>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="big">Log</div>
+      <div id="log" class="log"></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // --- CONFIG ---
+  const TRACK_LEN = 40;              // 40 squares total
+  const TILE_W = 52;                 // smaller helps separation
+  const TILE_H = 40;
+  const DICE_ROLL_MS = 900;          // dice animation duration
+  const MOVE_MS = 900;               // token movement duration (scaled by steps slightly)
+  const TURN_CARD_LIMIT = 1;
+
+  // --- DATA ---
+  const EXERCISES = [
+    { name:"Push-ups", icon:"🤸", label:"PUSH", unit:"reps" },
+    { name:"Squats", icon:"🏋️", label:"SQUAT", unit:"reps" },
+    { name:"Sit-ups", icon:"🧘", label:"SIT", unit:"reps" },
+    { name:"Lunges", icon:"🦵", label:"LUNGE", unit:"reps" },
+    { name:"Burpees", icon:"🐸", label:"BURP", unit:"reps" },
+    { name:"Mountain Climbers", icon:"🧗", label:"CLIMB", unit:"reps" },
+    { name:"Jumping Jacks", icon:"🤾", label:"JACK", unit:"reps" },
+    { name:"Plank", icon:"🪵", label:"PLANK", unit:"seconds" },
+  ];
+
+  const CARD_DECK = [
+    { id:"double", icon:"🟥", name:"Double", desc:"Target does DOUBLE on their next square.", target:"opponent",
+      apply:(s,from,to)=>addEffect(s,to,{type:"mult",value:2,uses:1}) },
+    { id:"freeze", icon:"🧊", name:"Freeze", desc:"Target must FREEZE 10s before next exercise.", target:"opponent",
+      apply:(s,from,to)=>addEffect(s,to,{type:"freeze",seconds:10,uses:1}) },
+    { id:"skip", icon:"⛔", name:"Skip", desc:"Target skips their next turn.", target:"opponent",
+      apply:(s,from,to)=>addEffect(s,to,{type:"skip",uses:1}) },
+    { id:"plus", icon:"➕", name:"+8", desc:"Target gets +8 reps/seconds on their next square.", target:"opponent",
+      apply:(s,from,to)=>addEffect(s,to,{type:"plus",value:8,uses:1}) },
+    { id:"relief", icon:"🟩", name:"Relief", desc:"HALVE your next square (rounded up).", target:"self",
+      apply:(s,from,to)=>addEffect(s,from,{type:"mult",value:0.5,uses:1}) },
+  ];
+
+  function pickExerciseForSquare(i){
+    // i is 0..39
+    // deterministic but mixed pattern
+    const idx = (i*5 + (i%7)) % EXERCISES.length;
+    return EXERCISES[idx];
+  }
+
+  function buildSquares(){
+    const squares = [];
+    for (let i=0; i<TRACK_LEN; i++){
+      const n = i + 1; // display number 1..40
+      if (i === 0){
+        squares.push({ type:"go", number:n, icon:"🏁", label:"GO", name:"GO", unit:"" });
+      } else {
+        const ex = pickExerciseForSquare(i);
+        squares.push({ type:"exercise", number:n, ...ex });
+      }
+    }
+    return squares;
+  }
+
+  // --- DOM ---
+  const $ = (id)=>document.getElementById(id);
+
+  const btnStart = $("btnStart");
+  const btnRoll = $("btnRoll");
+  const btnDone = $("btnDone");
+  const btnFail = $("btnFail");
+  const statusEl = $("status");
+  const challengeEl = $("challenge");
+  const timerEl = $("timer");
+  const playersEl = $("players");
+  const logEl = $("log");
+  const die1El = $("die1");
+  const die2El = $("die2");
+  const rollTotalEl = $("rollTotal");
+  const soundOnEl = $("soundOn");
+
+  const handEl = $("hand");
+  const btnPlayCard = $("btnPlayCard");
+  const cardHint = $("cardHint");
+  const targetSelect = $("targetSelect");
+  const targetArea = $("targetArea");
+
+  const tilesG = document.getElementById("tiles");
+  const tokensG = document.getElementById("tokens");
+  const trackPath = document.getElementById("trackPath");
+
+  // --- AUDIO (WebAudio beeps/clicks) ---
+  let audioCtx = null;
+  function ensureAudio(){
+    if (!soundOnEl.checked) return null;
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+  function blip(freq=700, dur=0.04, type="square", gain=0.05){
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = gain;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime + dur);
+  }
+  function click(){ blip(900, 0.02, "square", 0.03); }
+  function thud(){ blip(160, 0.06, "sine", 0.06); }
+  function whoop(){ blip(520, 0.05, "triangle", 0.05); setTimeout(()=>blip(780,0.06,"triangle",0.05), 70); }
+
+  // --- STATE ---
+  let state = null;
+  let countdown = null;
+
+  function log(msg){
+    logEl.textContent = (logEl.textContent + msg + "\n").slice(-8000);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function rollD6(){ return 1 + Math.floor(Math.random()*6); }
+
+  function stopTimer(){
+    if (countdown) clearInterval(countdown);
+    countdown = null;
+    timerEl.textContent = "";
+  }
+
+  function startTimer(seconds){
+    stopTimer();
+    let left = seconds;
+    timerEl.textContent = `Timer: ${left}s`;
+    countdown = setInterval(() => {
+      left -= 1;
+      timerEl.textContent = `Timer: ${left}s`;
+      if (left <= 0){
+        clearInterval(countdown);
+        countdown = null;
+        timerEl.textContent = "Time’s up. Mark done or fail.";
+        blip(420, 0.08, "sine", 0.05);
+      }
+    }, 1000);
+  }
+
+  function addEffect(state, playerIdx, effect){
+    state.players[playerIdx].effects.push(effect);
+  }
+
+  function drawCard(){
+    const c = CARD_DECK[Math.floor(Math.random()*CARD_DECK.length)];
+    return { id:c.id, icon:c.icon, name:c.name, desc:c.desc, target:c.target };
+  }
+  function deckById(id){ return CARD_DECK.find(c => c.id === id); }
+
+  function livingPlayers(){ return state.players.filter(p => !p.out); }
+
+  function nextLivingPlayerIndex(from){
+    const n = state.players.length;
+    for (let i=1; i<=n; i++){
+      const idx = (from + i) % n;
+      if (!state.players[idx].out) return idx;
+    }
+    return -1;
+  }
+
+  function maybeConsumeSkipAtTurnStart(){
+    const p = state.players[state.turnIndex];
+    const idx = p.effects.findIndex(e => e.type === "skip" && e.uses > 0);
+    if (idx >= 0){
+      p.effects[idx].uses -= 1;
+      if (p.effects[idx].uses <= 0) p.effects.splice(idx,1);
+      log(`⛔ ${p.name} skips their turn!`);
+      state.turnIndex = nextLivingPlayerIndex(state.turnIndex);
+      return true;
+    }
+    return false;
+  }
+
+  function applyAndConsumeEffects(p, base){
+    let reps = base.reps;
+    let preFreezeSeconds = 0;
+
+    const keep = [];
+    for (const e of p.effects){
+      if (e.type === "skip"){ keep.push(e); continue; }
+
+      if (e.type === "freeze" && e.uses > 0){
+        preFreezeSeconds = Math.max(preFreezeSeconds, e.seconds || 10);
+        e.uses -= 1;
+      } else if (e.type === "mult" && e.uses > 0){
+        reps = Math.ceil(reps * e.value);
+        e.uses -= 1;
+      } else if (e.type === "plus" && e.uses > 0){
+        reps += e.value;
+        e.uses -= 1;
+      }
+      if (e.uses > 0) keep.push(e);
+    }
+    p.effects = keep;
+    return { reps, preFreezeSeconds };
+  }
+
+  // --- SVG Helpers ---
+  function svgEl(tag, attrs={}){
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
+    return el;
+  }
+  function getVar(name, fallback){
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+  function tileFill(i){
+    return (i % 2 === 0) ? getVar("--tileA","#fff8ea") : getVar("--tileB","#f2ead9");
+  }
+
+  // Precompute path geometry helpers
+  let pathLen = 0;
+  let stepLen = 0;
+
+  function pointAtIndex(i){
+    // i 0..39 => length along path
+    const s = (i * stepLen) % pathLen;
+    return trackPath.getPointAtLength(s);
+  }
+  function pointAtLength(s){
+    const ss = ((s % pathLen) + pathLen) % pathLen;
+    return trackPath.getPointAtLength(ss);
+  }
+
+  function angleAndNormalAtLength(s){
+    const a = pointAtLength(s);
+    const b = pointAtLength(s + 18);
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const mag = Math.max(0.0001, Math.hypot(dx, dy));
+    const nx = -dy / mag, ny = dx / mag;
+    const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    return { ang, nx, ny, dx, dy };
+  }
+
+  function renderTilesStatic(){
+    while (tilesG.firstChild) tilesG.removeChild(tilesG.firstChild);
+
+    for (let i=0; i<TRACK_LEN; i++){
+      const s = i*stepLen;
+      const p = pointAtLength(s);
+      const geom = angleAndNormalAtLength(s);
+
+      // curvature-ish: compare angle ahead vs behind to decide stagger strength
+      const geom2 = angleAndNormalAtLength(s - 18);
+      let dAng = Math.abs(geom.ang - geom2.ang);
+      dAng = Math.min(dAng, 360 - dAng);
+      const extra = Math.min(10, Math.max(0, (dAng - 8) * 0.5)); // 0..10
+      const stagger = (i % 2 === 0 ? 6 : -6) + (i % 3 === 0 ? extra : -extra);
+
+      const cx = p.x + geom.nx * stagger;
+      const cy = p.y + geom.ny * stagger;
+
+      const sq = state ? state.squares[i] : (i===0 ? {type:"go", icon:"🏁", label:"GO", number:1} : {icon:"⭐", label:"", number:i+1});
+
+      const g = svgEl("g",{ transform:`translate(${cx} ${cy}) rotate(${geom.ang})` });
+
+      // tile
+      const rect = svgEl("rect",{
+        x:-TILE_W/2, y:-TILE_H/2, width:TILE_W, height:TILE_H, rx:12,
+        fill: tileFill(i),
+        stroke:"rgba(0,0,0,0.25)",
+        "stroke-width":"2",
+        filter:"url(#drop)"
+      });
+
+      // number badge (1..40)
+      const badge = svgEl("rect",{
+        x:-TILE_W/2 + 4, y:-TILE_H/2 + 4, width: 28, height: 16, rx:8,
+        fill:"rgba(0,0,0,0.10)",
+        stroke:"rgba(0,0,0,0.15)",
+        "stroke-width":"1"
+      });
+      const num = svgEl("text",{
+        x:-TILE_W/2 + 18, y:-TILE_H/2 + 16,
+        "text-anchor":"middle",
+        "font-size":"11",
+        "font-weight":"900",
+        fill:"rgba(0,0,0,0.78)"
+      });
+      num.textContent = sq.number;
+
+      // icon
+      const iconBadge = svgEl("circle",{
+        cx: 14, cy:-8, r: 11,
+        fill:"rgba(255,255,255,0.75)",
+        stroke:"rgba(0,0,0,0.12)",
+        "stroke-width":"2"
+      });
+      const icon = svgEl("text",{
+        x:14, y:-2, "text-anchor":"middle",
+        "font-size":"16"
+      });
+      icon.textContent = (i===0 ? "🏁" : sq.icon);
+
+      // label
+      const label = svgEl("text",{
+        x:0, y: 18, "text-anchor":"middle",
+        "font-size":"9",
+        "font-weight":"900",
+        fill:"rgba(0,0,0,0.78)"
+      });
+      label.textContent = (i===0 ? "GO" : sq.label);
+
+      g.appendChild(rect);
+      g.appendChild(badge);
+      g.appendChild(num);
+      g.appendChild(iconBadge);
+      g.appendChild(icon);
+      g.appendChild(label);
+
+      tilesG.appendChild(g);
+    }
+  }
+
+  // Tokens: one SVG circle per player, moved smoothly along path
+  function createOrUpdateTokenNodes(){
+    while (tokensG.firstChild) tokensG.removeChild(tokensG.firstChild);
+    if (!state) return;
+
+    state.players.forEach((p, idx) => {
+      const c = svgEl("circle",{
+        r:"10",
+        fill:p.color,
+        stroke:"rgba(255,255,255,0.92)",
+        "stroke-width":"3",
+        opacity:"0.98",
+        "data-idx": String(idx)
+      });
+      tokensG.appendChild(c);
+    });
+
+    updateTokensToSquarePositions(true);
+  }
+
+  function updateTokensToSquarePositions(isInstant=false){
+    if (!state) return;
+    const occupied = new Map(); // squareIndex => count, for offsetting tokens
+
+    state.players.forEach((p, idx) => {
+      const node = Array.from(tokensG.children).find(n => n.getAttribute("data-idx") === String(idx));
+      if (!node) return;
+
+      if (p.out){
+        node.setAttribute("opacity","0.22");
+      } else {
+        node.setAttribute("opacity","0.98");
+      }
+
+      // offsets for multiple tokens on same square
+      const key = p.pos;
+      const count = (occupied.get(key) || 0);
+      occupied.set(key, count + 1);
+
+      const s = p.pos * stepLen;
+      const pt = pointAtLength(s);
+      const geom = angleAndNormalAtLength(s);
+
+      // small fan offsets per occupant
+      const offsets = [
+        {a:-1, b:-1}, {a:1, b:-1}, {a:-1, b:1}, {a:1, b:1}
+      ];
+      const off = offsets[Math.min(count, offsets.length-1)];
+      const ox = geom.nx * (off.a * 10) + (geom.dx / Math.max(0.0001, Math.hypot(geom.dx, geom.dy))) * (off.b * 10);
+      const oy = geom.ny * (off.a * 10) + (geom.dy / Math.max(0.0001, Math.hypot(geom.dx, geom.dy))) * (off.b * 10);
+
+      node.setAttribute("cx", String(pt.x + ox));
+      node.setAttribute("cy", String(pt.y + oy));
+
+      // pulse current player
+      node.classList.toggle("pulse", idx === state.turnIndex && !p.out && state.phase !== "animating");
+    });
+  }
+
+  // Smooth movement along the path length (with wrap handling)
+  async function animateMovePlayer(playerIdx, steps){
+    state.phase = "animating";
+    btnRoll.disabled = true;
+    btnDone.disabled = true;
+    btnFail.disabled = true;
+    btnPlayCard.disabled = true;
+
+    const p = state.players[playerIdx];
+    const startIndex = p.pos;
+    const startLen = startIndex * stepLen;
+    const dist = steps * stepLen;
+    const duration = Math.min(1600, MOVE_MS + steps * 40);
+
+    const wrapThresholdT = dist > (pathLen - startLen) ? ((pathLen - startLen) / dist) : null;
+    let passGoTriggered = false;
+
+    const startTime = performance.now();
+
+    return new Promise(resolve => {
+      const tick = (now) => {
+        const t = Math.min(1, (now - startTime) / duration);
+        const curLen = startLen + dist * easeInOut(t);
+
+        // pass GO detection (crossed wrap point)
+        if (wrapThresholdT !== null && !passGoTriggered && t >= wrapThresholdT){
+          passGoTriggered = true;
+          const card = drawCard();
+          p.hand.push(card);
+          log(`🏁 ${p.name} passed GO and drew: ${card.icon} ${card.name}`);
+          whoop();
+        }
+
+        // update moving token only (others stay)
+        const node = Array.from(tokensG.children).find(n => n.getAttribute("data-idx") === String(playerIdx));
+        if (node){
+          const pt = pointAtLength(curLen);
+          node.setAttribute("cx", String(pt.x));
+          node.setAttribute("cy", String(pt.y));
+        }
+
+        // “footstep” ticks lightly
+        if (soundOnEl.checked && t < 1 && (Math.floor(t*steps*2) !== Math.floor((Math.max(0,t-0.03))*steps*2))){
+          click();
+        }
+
+        if (t < 1){
+          requestAnimationFrame(tick);
+        } else {
+          // snap to final square
+          const newPos = (startIndex + steps) % TRACK_LEN;
+          p.pos = newPos;
+          state.phase = "challenge";
+
+          updateTokensTarePositions(true);
+          resolve();
+        }
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
+  function easeInOut(t){
+    return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2;
+  }
+
+  // --- UI rendering ---
+  function renderPlayers(){
+    if (!state){ playersEl.innerHTML=""; return; }
+    playersEl.innerHTML = state.players.map((p,idx)=>{
+      const turn = (idx===state.turnIndex) ? " (turn)" : "";
+      const st = p.out ? "❌ OUT" : "✅ IN";
+      const fx = p.effects.map(e=>{
+        if (pe==="mult") return `×${e.value}`;
+        if (e.type==="plus") return `+${e.value}`;
+        if (e.type==="freeze") return `🧊${e.seconds}s`;
+        if (e.type==="skip") return `⛔skip`;
+        return e.type;
+      }).join(" ");
+      return `
+        <div style="display:flex;align-items:center;gap:8px;margin:6px 0;">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${p.color}"></span>
+          <b>${p.name}</b>${turn}
+          <span class="muted">squar.pos+1}</span>
+          <span class="muted" style="margin-left:8px;">${fx ? "effects: "+fx : ""}</span>
+          <span style="margin-left:auto">${st}</span>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderTargets(){
+    targetSelect.innerHTML = "";
+    if (!state) return;
+    state.players.forEach((p,idx)=>{
+      if (p.out) return;
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = p.name;
+      targetSelect.appendChild(opt);
+    });
+  }
+
+  function renderHand(){
+    handEl.innerHTML="";
+    cardHint.textContent="";
+    btnPlayCard.disabled = true;
+    targetArea.classList.add("hidden");
+
+    if (!state) return;
+    const p = state.players[state.turnIndex];
+    if (p.out) return;
+
+    // Only show/enable in pre-roll
+    if (state.phase !== "preRoll"){
+      cardHint.textContent = "You can play a card before rolling.";
+      return;
+    }
+    if (state.playedCardsThisTurn >= TURN_CARD_LIMIT){
+      cardHint.textContent = "Card already played this turn.";
+      return;
+    }
+
+    if (p.hand.length === 0){
+      cardHint.textContent = "No cards yet. Pass GO to draw one.";
+      return;
+    }
+
+    p.hand.forEach((c,i)=>{
+      const div = document.createElement("div");
+      div.className = "chip" + (state.selectedCardIndex===i ? " selected" : "");
+      div.innerHTML = `<span style="font-size:18px">${c.icon}</span> ${c.name} <small>(${c.target})</small>`;
+      div.title = c.desc;
+      div.onclick = ()=>{
+        state.selectedCardIndex = (state.selectedCardIndex===i ? null : i);
+        renderHand();
+      };
+      handEl.appendChild(div);
+    });
+
+    if (state.selectedCardIndex !== null){
+      const c = p.hand[state.selectedCardIndex];
+      cardHint.textContent = c.desc;
+
+      if (c.target === "self"){
+        targetSelect.value = String(state.turnIndex);
+        targetArea.classList.add("hidden");
+      } else {
+        targetArea.classList.remove("hidden");
+        // default to first other player
+        if (Number(targetSelect.value) === state.turnIndex){
+          const firstOther = state.players.findIndex((x,idx)=>!x.out && idx!==state.turnIndex);
+          if (firstOther >= 0) targetSelect.value = String(firstOther);
+        }
+      }
+      btnPlayCard.disabled = false;
+    }
+  }
+
+  function beginTurnUI(){
+    stopTimer();
+    rollTotalEl.textContent = "—";
+    die1El.textContent = "-";
+    die2El.textContent = "-";
+
+    const p = state.players[state.turnIndex];
+    statusEl.innerHTML = `<b>${p.name}</b> to act. (Optional: play aard, then roll.)`;
+    challengeEl.textContent = "";
+    btnRoll.disabled = false;
+    btnDone.disabled = true;
+    btnFail.disabled = true;
+
+    state.phase = "preRoll";
+    state.selectedCardIndex = null;
+    state.playedCardsThisTurn = 0;
+
+    renderTargets();
+    renderHand();
+    updateTokensToSquarePositions(true);
+  }
+
+  function checkWin(){
+    const alive = livingPlayers();
+    if (alive.length === 1){
+      const w = alive[0];
+      statusEl.innerHTML = `🏆 <b>${w.name}</b> wins Fitness Survivor;
+      btnRoll.disabled = true;
+      btnDone.disabled = true;
+      btnFail.disabled = true;
+      btnPlayCard.disabled = true;
+      whoop();
+      log(`🏆 WINNER: ${w.name}`);
+      return true;
+    }
+    return false;
+  }
+
+  function endTurnAdvance(){
+    if (checkWin()) return;
+
+    state.turnIndex = nextLivingPlayerIndex(state.turnIndex);
+    state.pending = null;
+
+    while (maybeConsumeSkipAtTurnStart()){
+      if (checkWin()) return;
+    }
+
+    renderPlayers();
+    beginTurnUI();
+  }
+
+  functionakeChallenge(playerIdx){
+    const player = state.players[playerIdx];
+    const sq = state.squares[player.pos];
+
+    if (sq.type === "go"){
+      return { exercise:"GO", icon:"🏁", unit:"", amount:0, preFreezeSeconds:0 };
+    }
+
+    // reps/seconds = square number (1..40)
+    const baseAmount = sq.number;
+    const base = { reps: baseAmount };
+    const modded = applyAndConsumeEffects(player, base);
+
+    return {
+      exercise: sq.name,
+      icon: sq.icon,
+      unit: sq.unit,
+      amount: modded.reps,     preFreezeSeconds: modded.preFreezeSeconds,
+      squareNumber: sq.number
+    };
+  }
+
+  async function animateDiceRoll(){
+    btnRoll.disabled = true;
+    btnPlayCard.disabled = true;
+
+    die1El.classList.add("rolling");
+    die2El.classList.add("rolling");
+
+    const start = performance.now();
+    let d1 = 1, d2 = 1;
+
+    return new Promise(resolve => {
+      const tick = (now) => {
+        const t = now - start;
+        if (t < DICE_ROLL_MS){
+          d1 = rollD6();
+          d2 = rollD6();
+          die1El.textContent = d1;
+          die2El.textContent = d2;
+          rollTotalEl.textContent = String(d1 + d2);
+          click();
+          requestAnimationFrame(tick);
+        } else {
+          // final
+          d1 = rollD6(); d2 = rollD6();
+          die1El.textContent = d1;
+          die2El.textContent = d2;
+          rollTotalEl.textContent = String(d1 + d2);
+          die1El.classList.remove("rolling");
+          die2El.classList.remove("rolling");
+          thud();
+          resolve({d1,d2,total:d1+d2});
+        }
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
+  // --- EVENTS ---
+  btnStart.addEventListener("click", () => {
+    const count = parseInt($("playerCount").value, 10);
+    const raw = ($("names").value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    const defaults = ["Player 1","Player 2","Player 3","Player 4"];
+    const names = Array.from({length: count}, (_,i)=> raw[i] || defaults[i]);
+
+    const colors = ["#ff3b30","#34c759","#007aff","#ff9500"];
+
+    // path geometry
+    pathLen = trackPath.getTotalLength();
+    stepLen = pathLen / TRACK_LEN;
+
+    state = {
+      squares: buildSquares(),
+      players: names.map((name,i)=>({ name, pos:0, out:false, color:colors[i], hand:[], effects:[] })),
+      turnIndex: 0,
+      pending: null,
+      phase: "preRoll",
+      selectedCardIndex: null,
+      playedCardsThisTurn: 0
+    };
+
+    logEl.textContent = "";
+    log("Fitness Survivor started.");
+    log("Rule: Square # = reps/seconds. Dice only moves you.");
+    log("Rule: Pass GO -> draw a sabotage card.");
+
+    renderTilesStatic();
+    createOrUpdateTokenNodes();
+    renderPlayers();
+    renderTargets();
+    renderHand();
+
+    while (maybeConsumeSkipAtTurnStart()){
+      if (checkWin()) return;
+    }
+    beginTurnUI();
+  });
+
+  btnPlayCard.addEventListener("click", () => {
+    if (!state) return;
+    if (state.phase !== "preRoll") return;
+    if (state.selectedCardIndex === null) return;
+    if (state.playedCardsThisTurn >= TURN_CARD_LIMIT) return;
+
+    const fromIdx = state.turnIndex;
+    const from = state.players[fromIdx];
+    const card = from.hand[state.selectedCardIndex];
+
+    const toIdx = (card.target === "self") ? fromIdx : Number(targetSelect.value);
+    if (card.target === "opponent" && toIdx === fromIdx) return;
+
+    const def = deckById(card.id);
+    if (!def) return;
+
+    def.apply(state, fromIdx, toIdx);
+
+    from.hand.splice(state.selectedCardIndex, 1);
+    state.selectedCardIndex = null;
+    state.playedCardsThisTurn += 1;
+
+    log(`🃏 ${from.name} played ${card.on} ${card.name} on ${state.players[toIdx].name}.`);
+    blip(650, 0.05, "triangle", 0.05);
+
+    renderPlayers();
+    renderHand();
+  });
+
+  btnRoll.addEventListener("click", async () => {
+    if (!state) return;
+    const p = state.players[state.turnIndex];
+    if (p.out) return;
+    if (state.phase !== "preRoll") return;
+
+    state.phase = "animating";
+    btnRoll.disabled = true;
+
+    const {d1,d2,total} = await animateDiceRoll();
+    log(`🎲 ${p.name} rolled ${d1}+${d2}=${total}.`);
+
+    // animate toen around the loop
+    await animateMovePlayer(state.turnIndex, total);
+
+    // build challenge based on landing square number
+    state.pending = makeChallenge(state.turnIndex);
+
+    renderPlayers();
+    renderHand();
+    updateTokensToSquarePositions(true);
+
+    btnDone.disabled = false;
+    btnFail.disabled = false;
+
+    const ch = state.pending;
+    if (ch.exercise === "GO"){
+      challengeEl.innerHTML = `${p.name}: 🏁 <b>GO</b> (safe square)`;
+      statusEl.innerHTML = `<b>${p.name}</b> — safe sq. Mark done to continue.`;
+      return;
+    }
+
+    // freeze effect
+    if (ch.preFreezeSeconds > 0){
+      challengeEl.innerHTML = `${p.name}: 🧊 <b>FREEZE</b> ${ch.preFreezeSeconds}s, then…`;
+      startTimer(ch.preFreezeSeconds);
+      setTimeout(() => {
+        // show actual exercise after freeze starts
+        const unitLabel = (ch.unit === "seconds") ? "seconds" : "reps";
+        challengeEl.innerHTML = `${p.name}: <span style="font-size:22px">${ch.icon}</span> <b>${ch.exercise}</b> — <b>${ch.}</b> ${unitLabel} <span class="muted small">(square ${ch.squareNumber})</span>`;
+      }, 350);
+    } else {
+      const unitLabel = (ch.unit === "seconds") ? "seconds" : "reps";
+      challengeEl.innerHTML = `${p.name}: <span style="font-size:22px">${ch.icon}</span> <b>${ch.exercise}</b> — <b>${ch.amount}</b> ${unitLabel} <span class="muted small">(square ${ch.squareNumber})</span>`;
+    }
+
+    statusEl.innerHTML = `<b>${p.name}</b> — complete the challenge.`;
+  });
+
+  btnDone.addEventListener("click" => {
+    if (!state || !state.pending) return;
+    const p = state.players[state.turnIndex];
+
+    stopTimer();
+
+    if (state.pending.exercise === "GO"){
+      log(`✅ ${p.name} landed on GO (safe).`);
+    } else {
+      const u = (state.pending.unit === "seconds") ? "s" : " reps";
+      log(`✅ ${p.name} completed: ${state.pending.exercise} (${state.pending.amount}${u}) on square ${state.pending.squareNumber}.`);
+    }
+
+    state.pending = null;
+    endTurnAdvance();
+  });
+
+  btnFail.addEventListener("c", () => {
+    if (!state) return;
+    const p = state.players[state.turnIndex];
+
+    stopTimer();
+    p.out = true;
+    log(`❌ ${p.name} failed and is OUT.`);
+    blip(220, 0.12, "sine", 0.07);
+
+    endTurnAdvance();
+  });
+
+  // Initial static board (before start)
+  // We can’t compute stepLen until path is measurable, so just render after first Start.
+})();
+</script>
+</body>
+</html>
+

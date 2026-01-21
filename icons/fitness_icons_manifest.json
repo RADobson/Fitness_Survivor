@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Knee push-ups",
+    "difficulty": "easy",
+    "label": "K-PU",
+    "file": "easy_knee-push-ups.png"
+  },
+  {
+    "name": "Air squats",
+    "difficulty": "easy",
+    "label": "SQUAT",
+    "file": "easy_air-squats.png"
+  },
+  {
+    "name": "Glute bridges",
+    "difficulty": "easy",
+    "label": "BRIDGE",
+    "file": "easy_glute-bridges.png"
+  },
+  {
+    "name": "Sit-ups",
+    "difficulty": "easy",
+    "label": "SITUP",
+    "file": "easy_sit-ups.png"
+  },
+  {
+    "name": "Calf raises",
+    "difficulty": "easy",
+    "label": "CALF",
+    "file": "easy_calf-raises.png"
+  },
+  {
+    "name": "Push-ups",
+    "difficulty": "medium",
+    "label": "PUSH",
+    "file": "medium_push-ups.png"
+  },
+  {
+    "name": "Burpees",
+    "difficulty": "medium",
+    "label": "BURP",
+    "file": "medium_burpees.png"
+  },
+  {
+    "name": "Mountain climbers",
+    "difficulty": "medium",
+    "label": "CLIMB",
+    "file": "medium_mountain-climbers.png"
+  },
+  {
+    "name": "Jump squats",
+    "difficulty": "medium",
+    "label": "J-SQ",
+    "file": "medium_jump-squats.png"
+  },
+  {
+    "name": "Plank shoulder taps",
+    "difficulty": "medium",
+    "label": "TAPS",
+    "file": "medium_plank-shoulder-taps.png"
+  },
+  {
+    "name": "Handstand pushups",
+    "difficulty": "hard",
+    "label": "HSPU",
+    "file": "hard_handstand-pushups.png"
+  },
+  {
+    "name": "Jumping lunges",
+    "difficulty": "hard",
+    "label": "J-LNG",
+    "file": "hard_jumping-lunges.png"
+  },
+  {
+    "name": "Clap push-ups",
+    "difficulty": "hard",
+    "label": "CLAP",
+    "file": "hard_clap-push-ups.png"
+  },
+  {
+    "name": "Pistol Squats",
+    "difficulty": "hard",
+    "label": "PIST",
+    "file": "hard_pistol-squats.png"
+  },
+  {
+    "name": "V-ups",
+    "difficulty": "hard",
+    "label": "V-UP",
+    "file": "hard_v-ups.png"
+  }
+]
